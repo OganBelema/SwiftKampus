@@ -4,17 +4,21 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -47,6 +51,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
     private EditText mConfirmPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private TextView textView;
 
     String sLastName;
     String sFirstName;
@@ -57,7 +62,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setTitle("Student Register");
-        setContentView(R.layout.activity_login);
+        setContentView(R.layout.activity_student_register);
 
         Bundle bundle = getIntent().getExtras();
         sLastName = bundle.getString("lastName");
@@ -65,14 +70,35 @@ public class StudentRegisterActivity extends AppCompatActivity {
         s_studentId = bundle.getString("userId");
         sDepartment = bundle.getString("department");
 
-
         TextView userId = (TextView) findViewById(R.id.userId_txt);
         TextView fullName = (TextView) findViewById(R.id.fullName_txt);
         TextView department = (TextView) findViewById(R.id.department_txt);
+        textView = (TextView) findViewById(R.id.notMe);
+        textView.setOnClickListener(new OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(StudentRegisterActivity.this);
+                alertDialogBuilder.setMessage("Kindly report this to the school's ICT department. Thank you");
+                alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialogInterface, int i) {
+                        finish();
+                    }
+                });
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+                alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        finish();
+                    }
+                });
+            }
+        });
 
-        userId.setText(s_studentId);
-        fullName.setText(sLastName + " " + sFirstName);
-        department.setText(sDepartment);
+        userId.setText("Student ID: " + s_studentId);
+        fullName.setText("Full Name: "+ sLastName + " " + sFirstName);
+        department.setText("Department: " + sDepartment);
 
         // Set up the login form.
         mEmailView = (TextView) findViewById(R.id.email);
@@ -93,8 +119,17 @@ public class StudentRegisterActivity extends AppCompatActivity {
         });
 
         mLoginFormView = findViewById(R.id.login_form);
+        mLoginFormView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                return true;
+            }
+        });
         mProgressView = findViewById(R.id.login_progress);
     }
+
 
     private void populateAutoComplete() {
         if (!mayRequestPermission()) {
@@ -292,6 +327,23 @@ public class StudentRegisterActivity extends AppCompatActivity {
                 System.out.println(response.errorBody());
                 System.out.println(response.message());
                 if (response.isSuccessful()){
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(StudentRegisterActivity.this);
+                    alertDialogBuilder.setMessage("Account successfully registered. Please check your mail for the" +
+                            " confirmation link");
+                    alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                            finish();
+                        }
+                    });
+                    AlertDialog alertDialog = alertDialogBuilder.create();
+                    alertDialog.show();
+                    alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            finish();
+                        }
+                    });
                     System.out.println(response.message());
                     System.out.println(response.code());
                     return true;

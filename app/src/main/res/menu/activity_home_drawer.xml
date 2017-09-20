@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group>
+        <item
+            android:id="@+id/nav_course_reg"
+            android:icon="@drawable/ic_collections_bookmark_black_24dp"
+            android:title="Course Registration" />
+        <item
+            android:id="@+id/nav_payfee"
+            android:icon="@drawable/ic_account_balance_black_24dp"
+            android:title="Pay Fee" />
+        <item
+            android:id="@+id/nav_accommodation"
+            android:icon="@drawable/ic_hotel_black_24dp"
+            android:title="Accommodation" />
+        <item
+            android:id="@+id/nav_result"
+            android:icon="@drawable/ic_grade_black_24dp"
+            android:title="Result" />
+        <item
+            android:id="@+id/nav_lms"
+            android:icon="@drawable/ic_school_black_24dp"
+            android:title="LMS" />
+        <item android:id="@+id/nav_settings"
+            android:icon="@drawable/ic_menu_manage"
+            android:title="Settings"/>
+    </group>
+
+    <item android:title="Communicate">
+        <menu>
+            <item
+                android:id="@+id/nav_share"
+                android:icon="@drawable/ic_menu_share"
+                android:title="Share" />
+            <item
+                android:id="@+id/nav_send"
+                android:icon="@drawable/ic_menu_send"
+                android:title="Send" />
+        </menu>
+    </item>
+
+</menu>

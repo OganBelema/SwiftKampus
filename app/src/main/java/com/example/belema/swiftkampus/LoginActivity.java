@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.AsyncTask;
@@ -11,13 +12,20 @@ import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.widget.NestedScrollView;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
+import android.view.MotionEvent;
 import android.view.View;
+import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
+
+import com.example.belema.swiftkampus.SessionManagement.UserSessionManager;
 
 import java.io.IOException;
 
@@ -39,26 +47,49 @@ public class LoginActivity extends AppCompatActivity {
      */
     private UserLoginTask mAuthTask = null;
 
+    // User Session Manager Class
+    UserSessionManager session;
+
     // UI references.
     private EditText mEmailView;
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private Toolbar toolbar;
 
     private static final int REQUEST_READ_IMEI = 0;
     String imei;
+    Response<ResponseBody> response;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
-        setTitle("Student Login");
-        setContentView(R.layout.activity_login2);
+        setContentView(R.layout.activity_login);
+        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        setSupportActionBar(toolbar);
+        if(getSupportActionBar() != null){
+            getSupportActionBar().setTitle("Login");
+        }
+
+        // User Session Manager
+        session = new UserSessionManager(getApplicationContext());
+
         // Set up the login form.
         mEmailView = (EditText) findViewById(R.id.email_et);
 
 
         mPasswordView = (EditText) findViewById(R.id.password_et);
+
+        NestedScrollView nestedScrollView = (NestedScrollView) findViewById(R.id.nested_scroll);
+        nestedScrollView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
+                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
+                return true;
+            }
+        });
 
 
         Button mEmailSignInButton = (Button) findViewById(R.id.sign_in_btn);
@@ -254,18 +285,18 @@ public class LoginActivity extends AppCompatActivity {
             Call<ResponseBody> call = login.login(new Student(mEmail, mImei, mPassword));
 
             try {
-                Response<ResponseBody> response = call.execute();
+                response = call.execute();
                 System.out.println(response.code());
                 System.out.println(response.errorBody());
                 System.out.println(response.message());
                 if (response.isSuccessful()){
+                    session.createUserLoginSession(mEmail, mPassword);
                     System.out.println(response.message());
                     System.out.println(response.code());
                     return true;
                 }
             } catch (IOException e) {
                 e.printStackTrace();
-
             }
 
             // TODO: register the new account here.
@@ -279,10 +310,49 @@ public class LoginActivity extends AppCompatActivity {
 
             if (success) {
                 Toast.makeText(getApplicationContext(), "Login Successful!", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(getApplicationContext(), Home.class);
+                startActivity(intent);
                 finish();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+               // mPasswordView.setError(getString(R.string.error_incorrect_password));
+                //mPasswordView.requestFocus();
+                if (response != null){
+                    if(response.message().equals("Bad Request")){
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
+                        alertDialogBuilder.setMessage("Wrong details provided or account not registered with this device");
+                        final AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                alertDialog.dismiss();
+                            }
+                        });
+                        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+                                alertDialog.dismiss();
+                            }
+                        });
+                    } else {
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
+                        alertDialogBuilder.setMessage(response.message());
+                        final AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                alertDialog.dismiss();
+                            }
+                        });
+                        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+                                alertDialog.dismiss();
+                            }
+                        });
+                    }
+                }
             }
         }
 
