@@ -42,60 +42,68 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                relativeLayout.setVisibility(View.GONE);
-                progressBar.setVisibility(View.VISIBLE);
-                CheckStudentId checkStudentId = ServiceGenerator.createService(CheckStudentId.class);
-                Call<StudentDetails> call = checkStudentId.checkStudentId(editText.getText().toString());
-                call.enqueue(new Callback<StudentDetails>() {
-                    @Override
-                    public void onResponse(Call<StudentDetails> call, Response<StudentDetails> response) {
-                        progressBar.setVisibility(View.GONE);
-                        if (response.isSuccessful()){
-                            StudentDetails details = response.body();
-                            String userId = details.getUserId();
-                            String firstName = details.getFirstName();
-                            String lastName = details.getLastName();
-                            String department = details.getDepartment();
+                if (NetworkConnectivity.checkNetworkConnecttion(getApplicationContext())) {
+                    relativeLayout.setVisibility(View.GONE);
+                    progressBar.setVisibility(View.VISIBLE);
+                    CheckStudentId checkStudentId = ServiceGenerator.createService(CheckStudentId.class);
+                    Call<StudentDetails> call = checkStudentId.checkStudentId(editText.getText().toString());
+                    call.enqueue(new Callback<StudentDetails>() {
+                        @Override
+                        public void onResponse(Call<StudentDetails> call, Response<StudentDetails> response) {
+                            progressBar.setVisibility(View.GONE);
+                            if (response.isSuccessful()) {
+                                StudentDetails details = response.body();
+                                String userId = details.getUserId();
+                                String firstName = details.getFirstName();
+                                String lastName = details.getLastName();
+                                String department = details.getDepartment();
 
-                            Intent intent = new Intent(getApplicationContext(), StudentRegisterActivity.class);
-                            intent.putExtra("userId", userId);
-                            intent.putExtra("firstName", firstName);
-                            intent.putExtra("lastName", lastName);
-                            intent.putExtra("department", department);
-                            startActivity(intent);
+                                Intent intent = new Intent(getApplicationContext(), StudentRegisterActivity.class);
+                                intent.putExtra("userId", userId);
+                                intent.putExtra("firstName", firstName);
+                                intent.putExtra("lastName", lastName);
+                                intent.putExtra("department", department);
+                                finish();
+                                startActivity(intent);
 
-                        } else {
+                            } else {
 
-                            if(response.message().equals("Bad Request")){
-                                AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
-                                alertDialogBuilder.setMessage("Account already activated!");
-                                alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                                            @Override
-                                            public void onClick(DialogInterface dialogInterface, int i) {
-                                                finish();
-                                            }
-                                        });
-                                AlertDialog alertDialog = alertDialogBuilder.create();
-                                alertDialog.show();
-                                alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                                    @Override
-                                    public void onCancel(DialogInterface dialogInterface) {
-                                        finish();
-                                    }
-                                });
+                                if (response.message().equals("Bad Request")) {
+                                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(MainActivity.this);
+                                    alertDialogBuilder.setMessage("Account already activated!");
+                                    alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                                        @Override
+                                        public void onClick(DialogInterface dialogInterface, int i) {
+                                            finish();
+                                        }
+                                    });
+                                    AlertDialog alertDialog = alertDialogBuilder.create();
+                                    alertDialog.show();
+                                    alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                                        @Override
+                                        public void onCancel(DialogInterface dialogInterface) {
+                                            finish();
+                                        }
+                                    });
+                                }
                             }
+
                         }
 
-                    }
+                        @Override
+                        public void onFailure(Call<StudentDetails> call, Throwable t) {
 
-                    @Override
-                    public void onFailure(Call<StudentDetails> call, Throwable t) {
+                            System.out.println(t.getMessage());
+                            progressBar.setVisibility(View.GONE);
+                            relativeLayout.setVisibility(View.VISIBLE);
+                            Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
+                        }
+                    });
+                } else {
+                    Toast.makeText(getApplicationContext(), "You are not connected to the internet",
+                            Toast.LENGTH_LONG).show();
+                }
 
-                        System.out.println(t.getMessage());
-                        progressBar.setVisibility(View.GONE);
-                        Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_SHORT).show();
-                    }
-                });
             }
         });
     }
