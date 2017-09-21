@@ -22,6 +22,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.IOException;
 
@@ -78,7 +79,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(StudentRegisterActivity.this);
-                alertDialogBuilder.setMessage("Kindly report this to the school's ICT department. Thank you");
+                alertDialogBuilder.setMessage("Kindly report this to the school ICT department. Thank you");
                 alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
@@ -114,7 +115,15 @@ public class StudentRegisterActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 populateAutoComplete();
-                attemptLogin();
+                if (NetworkConnectivity.checkNetworkConnecttion(getApplicationContext())){
+                    attemptLogin();
+                } else {
+                    Toast.makeText(getApplicationContext(), "You are not connected to the internet",
+                            Toast.LENGTH_LONG).show();
+                }
+
+
+
             }
         });
 
@@ -240,12 +249,12 @@ public class StudentRegisterActivity extends AppCompatActivity {
     }
 
     private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
+
         return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
+
         return password.length() > 4;
     }
 
@@ -316,7 +325,6 @@ public class StudentRegisterActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
             RegisterStudent registerStudent = ServiceGenerator.createService(RegisterStudent.class);
             Call<ResponseBody> call = registerStudent.registerStudent(new Student(mFirstName,mLastName,mDepartment, mImei, mStudentId, mEmail, mPassword, mConfirmPasword));
@@ -364,8 +372,8 @@ public class StudentRegisterActivity extends AppCompatActivity {
             if (success) {
                 finish();
             } else {
-                mPasswordView.setError(getString(R.string.error_incorrect_password));
-                mPasswordView.requestFocus();
+                Toast.makeText(getApplicationContext(), "Error registering. Please try again.",
+                        Toast.LENGTH_LONG).show();
             }
         }
 

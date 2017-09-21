@@ -97,7 +97,12 @@ public class LoginActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 populateAutoComplete();
-                attemptLogin();
+                if (NetworkConnectivity.checkNetworkConnecttion(getApplicationContext())){
+                    attemptLogin();
+                } else {
+                    Toast.makeText(getApplicationContext(), "You are not connected to the internet",
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -213,13 +218,9 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
-   /* private boolean isEmailValid(String email) {
-        //TODO: Replace this with your own logic
-        return email.contains("@");
-    } */
 
     private boolean isPasswordValid(String password) {
-        //TODO: Replace this with your own logic
+
         return password.length() > 4;
     }
 
@@ -279,7 +280,6 @@ public class LoginActivity extends AppCompatActivity {
 
         @Override
         protected Boolean doInBackground(Void... params) {
-            // TODO: attempt authentication against a network service.
 
             StudentLogin login = ServiceGenerator.createService(StudentLogin.class);
             Call<ResponseBody> call = login.login(new Student(mEmail, mImei, mPassword));
@@ -299,7 +299,6 @@ public class LoginActivity extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            // TODO: register the new account here.
             return false;
         }
 
@@ -314,20 +313,18 @@ public class LoginActivity extends AppCompatActivity {
                 startActivity(intent);
                 finish();
             } else {
-               // mPasswordView.setError(getString(R.string.error_incorrect_password));
-                //mPasswordView.requestFocus();
+
                 if (response != null){
                     if(response.message().equals("Bad Request")){
                         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
                         alertDialogBuilder.setMessage("Wrong details provided or account not registered with this device");
-                        final AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
                         alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                alertDialog.dismiss();
                             }
                         });
+                        final AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
                         alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                             @Override
                             public void onCancel(DialogInterface dialogInterface) {
@@ -337,14 +334,13 @@ public class LoginActivity extends AppCompatActivity {
                     } else {
                         AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
                         alertDialogBuilder.setMessage(response.message());
-                        final AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
                         alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                             @Override
                             public void onClick(DialogInterface dialogInterface, int i) {
-                                alertDialog.dismiss();
                             }
                         });
+                        final AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
                         alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
                             @Override
                             public void onCancel(DialogInterface dialogInterface) {

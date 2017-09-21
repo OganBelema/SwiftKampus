@@ -5,26 +5,26 @@
         <item
             android:id="@+id/nav_course_reg"
             android:icon="@drawable/ic_collections_bookmark_black_24dp"
-            android:title="Course Registration" />
+            android:title="@string/course_reg" />
         <item
             android:id="@+id/nav_payfee"
             android:icon="@drawable/ic_account_balance_black_24dp"
-            android:title="Pay Fee" />
+            android:title="@string/pay_fee" />
         <item
             android:id="@+id/nav_accommodation"
             android:icon="@drawable/ic_hotel_black_24dp"
-            android:title="Accommodation" />
+            android:title="@string/hostel_reg" />
         <item
             android:id="@+id/nav_result"
             android:icon="@drawable/ic_grade_black_24dp"
-            android:title="Result" />
+            android:title="@string/student_result" />
         <item
             android:id="@+id/nav_lms"
             android:icon="@drawable/ic_school_black_24dp"
-            android:title="LMS" />
+            android:title="@string/lms" />
         <item android:id="@+id/nav_settings"
             android:icon="@drawable/ic_menu_manage"
-            android:title="Settings"/>
+            android:title="@string/action_settings"/>
     </group>
 
     <item android:title="Communicate">
