@@ -51,7 +51,7 @@ public class Home extends AppCompatActivity
         // get email
         String email = user.get(UserSessionManager.KEY_EMAIL);
 
-        String imageUrl = "https://unibenportal.azurewebsites.net/ConvertImage/RenderImage?StudentId=UNIBEN-201";
+        String imageUrl = "https://unibenportal.azurewebsites.net/ConvertImage/RenderImage?StudentId=UNIBEN-203";
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
@@ -91,8 +91,10 @@ public class Home extends AppCompatActivity
 
         navigationView.setNavigationItemSelectedListener(this);
 
+
         GetDashboard getDashboard = ServiceGenerator.createService(GetDashboard.class);
-        getDashboard.getDashboard("uniben-201").enqueue(new Callback<Dashboard>() {
+        getDashboard.getDashboard("uniben-203").enqueue(new Callback<Dashboard>() {
+
             @Override
             public void onResponse(Call<Dashboard> call, Response<Dashboard> response) {
 
@@ -110,6 +112,7 @@ public class Home extends AppCompatActivity
                     TextView SessionTextView = findViewById(R.id.tv_dashboard_sessionName);
                     TextView FacultyTextView = findViewById(R.id.tv_dashboard_facultyName);
                     TextView RegisteredTextView = findViewById(R.id.tv_dashboard_noOfRegisteredCourses);
+
                     StudentIdTextView.setText(getResources().getString(R.string.userId,dashboard.getStudentId()));
                     FullnameTextView.setText(getResources().getString(R.string.fullName, dashboard.getFullName()));
                     LevelTextView.setText(getResources().getString(R.string.levelName, dashboard.getLevelName()));
@@ -193,4 +196,5 @@ public class Home extends AppCompatActivity
         drawer.closeDrawer(GravityCompat.START);
         return true;
     }
+
 }
