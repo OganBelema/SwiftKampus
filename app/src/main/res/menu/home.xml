@@ -3,7 +3,12 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
         android:id="@+id/action_signOut"
-        android:orderInCategory="100"
+        android:orderInCategory="1"
         android:title="@string/signOut"
         app:showAsAction="never" />
+    <item android:id="@+id/refresh"
+        android:title="@string/refresh"
+        android:icon="@drawable/ic_refresh_black_24dp"
+        app:showAsAction="ifRoom"/>
+
 </menu>

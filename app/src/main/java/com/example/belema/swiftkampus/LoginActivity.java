@@ -7,11 +7,13 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.design.widget.Snackbar;
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.AsyncTaskLoader;
+import android.support.v4.content.Loader;
 import android.support.v4.widget.NestedScrollView;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
@@ -39,13 +41,13 @@ import static android.Manifest.permission.READ_PHONE_STATE;
 /**
  * A login screen that offers login via email/password.
  */
-public class LoginActivity extends AppCompatActivity {
+public class LoginActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Boolean> {
 
 
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+
 
     // User Session Manager Class
     UserSessionManager session;
@@ -60,13 +62,15 @@ public class LoginActivity extends AppCompatActivity {
     private static final int REQUEST_READ_IMEI = 0;
     String imei;
     Response<ResponseBody> response;
+    private StudentLogin login;
+    private Call<ResponseBody> call;
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login);
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
+        toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         if(getSupportActionBar() != null){
             getSupportActionBar().setTitle("Login");
@@ -76,12 +80,12 @@ public class LoginActivity extends AppCompatActivity {
         session = new UserSessionManager(getApplicationContext());
 
         // Set up the login form.
-        mEmailView = (EditText) findViewById(R.id.email_et);
+        mEmailView = findViewById(R.id.email_et);
 
 
-        mPasswordView = (EditText) findViewById(R.id.password_et);
+        mPasswordView = findViewById(R.id.password_et);
 
-        NestedScrollView nestedScrollView = (NestedScrollView) findViewById(R.id.nested_scroll);
+        NestedScrollView nestedScrollView = findViewById(R.id.nested_scroll);
         nestedScrollView.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View view, MotionEvent motionEvent) {
@@ -92,7 +96,7 @@ public class LoginActivity extends AppCompatActivity {
         });
 
 
-        Button mEmailSignInButton = (Button) findViewById(R.id.sign_in_btn);
+        Button mEmailSignInButton = findViewById(R.id.sign_in_btn);
         mEmailSignInButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -106,7 +110,7 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
 
-        Button button = (Button) findViewById(R.id.register_btn);
+        Button button = findViewById(R.id.register_btn);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -172,9 +176,9 @@ public class LoginActivity extends AppCompatActivity {
      * errors are presented and no actual login attempt is made.
      */
     private void attemptLogin() {
-        if (mAuthTask != null) {
+        /* if (mAuthTask != null) {
             return;
-        }
+        } */
 
         // Reset errors.
         mEmailView.setError(null);
@@ -213,8 +217,14 @@ public class LoginActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password, imei);
-            mAuthTask.execute((Void) null);
+            login = ServiceGenerator.createService(StudentLogin.class);
+            call = login.login(new Student(email, imei, password));
+            LoaderManager loaderManager = getSupportLoaderManager();
+            if (loaderManager == null) {
+                loaderManager.initLoader(0, null, this);
+            } else {
+                loaderManager.restartLoader(0, null, this);
+            }
         }
     }
 
@@ -260,103 +270,90 @@ public class LoginActivity extends AppCompatActivity {
         }
     }
 
+    @Override
+    public Loader<Boolean> onCreateLoader(int id, Bundle args) {
+        return new AsyncTaskLoader<Boolean>(this) {
+            @Override
+            protected void onStartLoading() {
+                forceLoad();
+            }
 
-
-    /**
-     * Represents an asynchronous login/registration task used to authenticate
-     * the user.
-     */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
-
-        private final String mEmail;
-        private final String mPassword;
-        private final String mImei;
-
-        UserLoginTask(String email, String password, String imei) {
-            mEmail = email;
-            mPassword = password;
-            mImei = imei;
-        }
-
-        @Override
-        protected Boolean doInBackground(Void... params) {
-
-            StudentLogin login = ServiceGenerator.createService(StudentLogin.class);
-            Call<ResponseBody> call = login.login(new Student(mEmail, mImei, mPassword));
-
-            try {
-                response = call.execute();
-                System.out.println(response.code());
-                System.out.println(response.errorBody());
-                System.out.println(response.message());
-                if (response.isSuccessful()){
-                    session.createUserLoginSession(mEmail, mPassword);
-                    System.out.println(response.message());
+            @Override
+            public Boolean loadInBackground() {
+                try {
+                    response = call.execute();
                     System.out.println(response.code());
-                    return true;
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-            return false;
-        }
-
-        @Override
-        protected void onPostExecute(final Boolean success) {
-            mAuthTask = null;
-            showProgress(false);
-
-            if (success) {
-                Toast.makeText(getApplicationContext(), "Login Successful!", Toast.LENGTH_SHORT).show();
-                Intent intent = new Intent(getApplicationContext(), Home.class);
-                startActivity(intent);
-                finish();
-            } else {
-
-                if (response != null){
-                    if(response.message().equals("Bad Request")){
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
-                        alertDialogBuilder.setMessage("Wrong details provided or account not registered with this device");
-                        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                            }
-                        });
-                        final AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
-                        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialogInterface) {
-                                alertDialog.dismiss();
-                            }
-                        });
-                    } else {
-                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
-                        alertDialogBuilder.setMessage(response.message());
-                        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialogInterface, int i) {
-                            }
-                        });
-                        final AlertDialog alertDialog = alertDialogBuilder.create();
-                        alertDialog.show();
-                        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                            @Override
-                            public void onCancel(DialogInterface dialogInterface) {
-                                alertDialog.dismiss();
-                            }
-                        });
+                    System.out.println(response.errorBody());
+                    System.out.println(response.message());
+                    if (response.isSuccessful()){
+                        session.createUserLoginSession(mEmailView.getText().toString(), mPasswordView.getText().toString());
+                        System.out.println(response.message());
+                        System.out.println(response.code());
+                        return true;
                     }
+                } catch (IOException e) {
+                    e.printStackTrace();
                 }
+
+                return false;
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Boolean> loader, Boolean data) {
+        showProgress(false);
+
+        if (data) {
+            Toast.makeText(getApplicationContext(), "Login Successful!", Toast.LENGTH_SHORT).show();
+            Intent intent = new Intent(getApplicationContext(), Home.class);
+            startActivity(intent);
+            finish();
+        } else {
+
+            if (response != null){
+                if(response.message().equals("Bad Request")){
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
+                    alertDialogBuilder.setMessage("Wrong details provided or account not registered with this device");
+                    alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                        }
+                    });
+                    final AlertDialog alertDialog = alertDialogBuilder.create();
+                    alertDialog.show();
+                    alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            alertDialog.dismiss();
+                        }
+                    });
+                } else {
+                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(LoginActivity.this);
+                    alertDialogBuilder.setMessage(response.message());
+                    alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialogInterface, int i) {
+                        }
+                    });
+                    final AlertDialog alertDialog = alertDialogBuilder.create();
+                    alertDialog.show();
+                    alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            alertDialog.dismiss();
+                        }
+                    });
+                }
+            } else {
+                System.err.println("Empty response");
             }
         }
+    }
 
-        @Override
-        protected void onCancelled() {
-            mAuthTask = null;
-            showProgress(false);
-        }
+    @Override
+    public void onLoaderReset(Loader<Boolean> loader) {
+
     }
 }
 

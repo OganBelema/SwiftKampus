@@ -31,6 +31,9 @@ public class Home extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     // User Session Manager Class
     UserSessionManager session;
+    private GetDashboard getDashboard;
+    private LinearLayout dashboardView;
+    private ProgressBar progressBar;
 
 
     @Override
@@ -39,8 +42,8 @@ public class Home extends AppCompatActivity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_home);
 
-        final ProgressBar progressBar = findViewById(R.id.home_progress_bar);
-        final LinearLayout dashboardView = findViewById(R.id.cd_dashboard_details);
+        progressBar = findViewById(R.id.home_progress_bar);
+        dashboardView = findViewById(R.id.cd_dashboard_details);
 
         // Session class instance
         session = new UserSessionManager(getApplicationContext());
@@ -55,7 +58,7 @@ public class Home extends AppCompatActivity
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
-        TextView textView =  headerView.findViewById(R.id.drawNav_txt);
+        TextView textView = headerView.findViewById(R.id.drawNav_txt);
         textView.setText(email);
 
         CircleImageView circleImageView = headerView.findViewById(R.id.imageView);
@@ -65,12 +68,12 @@ public class Home extends AppCompatActivity
 
         // Check user login
         // If User is not logged in , This will redirect user to LoginActivity.
-        if(session.checkLogin())
+        if (session.checkLogin())
             finish();
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
-        if(getSupportActionBar() != null){
+        if (getSupportActionBar() != null) {
             getSupportActionBar().setTitle(R.string.title_activity_home);
         }
 
@@ -92,7 +95,80 @@ public class Home extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 
-        GetDashboard getDashboard = ServiceGenerator.createService(GetDashboard.class);
+        if (NetworkConnectivity.checkNetworkConnecttion(this)) {
+            loadDashboard();
+        } else {
+            progressBar.setVisibility(View.GONE);
+            Toast.makeText(this, "You are not connected to the internet", Toast.LENGTH_LONG)
+                    .show();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        if (drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START);
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.home, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_signOut) {
+            session.logoutUser();
+            finish();
+            return true;
+        } else if(id == R.id.refresh){
+            dashboardView.setVisibility(View.INVISIBLE);
+            progressBar.setVisibility(View.VISIBLE);
+            loadDashboard();
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @SuppressWarnings("StatementWithEmptyBody")
+    @Override
+    public boolean onNavigationItemSelected(MenuItem item) {
+        // Handle navigation view item clicks here.
+        int id = item.getItemId();
+
+       /* if (id == R.id.nav_camera) {
+            // Handle the camera action
+        } else if (id == R.id.nav_gallery) {
+
+        } else if (id == R.id.nav_slideshow) {
+
+        } else if (id == R.id.nav_manage) {
+
+        } else if (id == R.id.nav_share) {
+
+        } else if (id == R.id.nav_send) {
+
+        } */
+
+        DrawerLayout drawer = findViewById(R.id.drawer_layout);
+        drawer.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    void loadDashboard(){
+        getDashboard = ServiceGenerator.createService(GetDashboard.class);
         getDashboard.getDashboard("uniben-203").enqueue(new Callback<Dashboard>() {
 
             @Override
@@ -136,65 +212,8 @@ public class Home extends AppCompatActivity
                 Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
+
     }
 
-    @Override
-    public void onBackPressed() {
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        if (drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START);
-        } else {
-            super.onBackPressed();
-        }
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.home, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_signOut) {
-            session.logoutUser();
-            finish();
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-
-    @SuppressWarnings("StatementWithEmptyBody")
-    @Override
-    public boolean onNavigationItemSelected(MenuItem item) {
-        // Handle navigation view item clicks here.
-        int id = item.getItemId();
-
-       /* if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
-
-        } */
-
-        DrawerLayout drawer = findViewById(R.id.drawer_layout);
-        drawer.closeDrawer(GravityCompat.START);
-        return true;
-    }
 
 }

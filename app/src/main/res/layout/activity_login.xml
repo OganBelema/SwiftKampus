@@ -83,10 +83,9 @@
                         android:id="@+id/email_et"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:hint="Email or Student ID"
+                        android:hint="@string/login_id_hint"
                         android:inputType="textEmailAddress"
-                        android:maxLines="1"
-                        android:singleLine="true" />
+                        android:maxLines="1"/>
 
                     <EditText
                         android:id="@+id/password_et"
@@ -97,30 +96,35 @@
                         android:imeActionLabel="@string/action_sign_in_short"
                         android:imeOptions="actionUnspecified"
                         android:inputType="textPassword"
-                        android:maxLines="1"
-                        android:singleLine="true" />
+                        android:maxLines="1"/>
 
                     <Button
                         android:id="@+id/sign_in_btn"
                         style="@style/button_style"
-                        android:layout_width="match_parent"
                         android:layout_marginTop="16dp"
-                        android:text="Sign in"
+                        android:text="@string/action_sign_in_short"
                         android:textStyle="bold" />
 
                     <Button
                         android:id="@+id/register_btn"
                         style="@style/button_style"
-                        android:layout_width="match_parent"
                         android:layout_marginTop="16dp"
-                        android:text="Activate Device"
+                        android:text="@string/activate_device"
                         android:textStyle="bold" />
 
+                    <Button
+                        android:id="@+id/forgot_password_btn"
+                        style="@style/button_style"
+                        android:layout_marginTop="16dp"
+                        android:text="@string/forgot_password"
+                        android:textStyle="bold"/>
+
                 </LinearLayout>
+
             </android.support.v4.widget.NestedScrollView>
+
         </LinearLayout>
 
     </android.support.v4.widget.NestedScrollView>
-
 
 </android.support.design.widget.CoordinatorLayout>

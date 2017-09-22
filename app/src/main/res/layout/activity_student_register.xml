@@ -33,6 +33,7 @@
             <android.support.v7.widget.CardView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content">
+
                 <LinearLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent"
@@ -48,6 +49,7 @@
                         android:paddingBottom="8dp"
                         android:text="Confirm your Details"
                         android:background="@color/colorAccent"/>
+
                     <TextView
                         android:id="@+id/userId_txt"
                         android:textSize="20sp"
@@ -75,11 +77,10 @@
                         android:paddingBottom="8dp"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content" />
+
                 </LinearLayout>
+
             </android.support.v7.widget.CardView>
-
-
-
 
             <EditText
                 android:id="@+id/email"
@@ -88,7 +89,6 @@
                 android:hint="@string/prompt_email"
                 android:inputType="textEmailAddress"
                 android:maxLines="1" />
-
 
             <EditText
                 android:id="@+id/password"
@@ -125,6 +125,7 @@
                 android:layout_gravity="bottom"
                 android:layout_marginTop="40dp"
                 android:orientation="horizontal">
+
                 <TextView
                     android:layout_width="0dp"
                     android:layout_weight="2"
@@ -133,6 +134,7 @@
                     android:gravity="center"
                     android:textSize="20sp"
                     android:layout_gravity="bottom"/>
+
                 <TextView
                     android:id="@+id/notMe"
                     android:layout_width="0dp"
@@ -141,9 +143,11 @@
                     android:text="Yes"
                     android:textColor="@android:color/holo_red_dark"
                     android:textSize="20sp"/>
+
             </LinearLayout>
 
-
         </LinearLayout>
+
     </ScrollView>
+
 </LinearLayout>
