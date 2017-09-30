@@ -14,7 +14,7 @@ public class Student {
     String Password;
     String ConfirmPassword;
 
-    Student(String firstName, String lastName, String department, String imei,
+    public Student(String firstName, String lastName, String department, String imei,
             String studentId, String email, String password, String confirmPassword){
         FirstName = firstName;
         LastName = lastName;
@@ -26,7 +26,7 @@ public class Student {
         ConfirmPassword = confirmPassword;
     }
 
-    Student(String email, String imei, String password)
+    public Student(String email, String imei, String password)
     {
         Email = email;
         Imei = imei;

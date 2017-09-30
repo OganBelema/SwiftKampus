@@ -1,6 +1,6 @@
-package com.example.belema.swiftkampus;
+package com.example.belema.swiftkampus.apiMethods;
 
-import com.example.belema.swiftkampus.Gson.StudentDetails;
+import com.example.belema.swiftkampus.gson.StudentDetails;
 
 import retrofit2.Call;
 import retrofit2.http.POST;

@@ -1,4 +1,6 @@
-package com.example.belema.swiftkampus;
+package com.example.belema.swiftkampus.apiMethods;
+
+import com.example.belema.swiftkampus.Student;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;

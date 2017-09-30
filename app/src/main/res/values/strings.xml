@@ -43,4 +43,8 @@
     <string name="facultyName"> <b>Faculty:</b> %1$s</string>
     <string name="registeredCourses"> <b>Registered Courses:</b> %1$d</string>
 
+    <string name="no_of_courses_to_be_registered">Number of Units to be registered: %1$d</string>
+
+    <string name="submit_courseReg_button">Submit Registration</string>
+
 </resources>

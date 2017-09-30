@@ -1,4 +1,4 @@
-package com.example.belema.swiftkampus;
+package com.example.belema.swiftkampus.activities;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -27,11 +27,16 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.example.belema.swiftkampus.SessionManagement.UserSessionManager;
+import com.example.belema.swiftkampus.NetworkConnectivity;
+import com.example.belema.swiftkampus.R;
+import com.example.belema.swiftkampus.ServiceGenerator;
+import com.example.belema.swiftkampus.Student;
+import com.example.belema.swiftkampus.apiMethods.StudentLogin;
+import com.example.belema.swiftkampus.gson.UserId;
+import com.example.belema.swiftkampus.sessionManagement.UserSessionManager;
 
 import java.io.IOException;
 
-import okhttp3.ResponseBody;
 import retrofit2.Call;
 import retrofit2.Response;
 
@@ -61,9 +66,9 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
 
     private static final int REQUEST_READ_IMEI = 0;
     String imei;
-    Response<ResponseBody> response;
+    Response<UserId> response;
     private StudentLogin login;
-    private Call<ResponseBody> call;
+    private Call<UserId> call;
 
 
     @Override
@@ -286,7 +291,8 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
                     System.out.println(response.errorBody());
                     System.out.println(response.message());
                     if (response.isSuccessful()){
-                        session.createUserLoginSession(mEmailView.getText().toString(), mPasswordView.getText().toString());
+                        String userId = response.body().getStudentId();
+                        session.createUserLoginSession(userId, mPasswordView.getText().toString());
                         System.out.println(response.message());
                         System.out.println(response.code());
                         return true;
@@ -306,7 +312,7 @@ public class LoginActivity extends AppCompatActivity implements LoaderManager.Lo
 
         if (data) {
             Toast.makeText(getApplicationContext(), "Login Successful!", Toast.LENGTH_SHORT).show();
-            Intent intent = new Intent(getApplicationContext(), Home.class);
+            Intent intent = new Intent(getApplicationContext(), HomeActivity.class);
             startActivity(intent);
             finish();
         } else {

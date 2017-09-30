@@ -1,5 +1,5 @@
 
-package com.example.belema.swiftkampus.Gson;
+package com.example.belema.swiftkampus.gson;
 
 import com.google.gson.annotations.Expose;
 import com.google.gson.annotations.SerializedName;

@@ -1,4 +1,4 @@
-package com.example.belema.swiftkampus;
+package com.example.belema.swiftkampus.activities;
 
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
@@ -23,6 +23,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.example.belema.swiftkampus.NetworkConnectivity;
+import com.example.belema.swiftkampus.R;
+import com.example.belema.swiftkampus.ServiceGenerator;
+import com.example.belema.swiftkampus.Student;
+import com.example.belema.swiftkampus.apiMethods.RegisterStudent;
 
 import java.io.IOException;
 

@@ -1,11 +1,11 @@
-package com.example.belema.swiftkampus.SessionManagement;
+package com.example.belema.swiftkampus.sessionManagement;
 
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 
-import com.example.belema.swiftkampus.LoginActivity;
+import com.example.belema.swiftkampus.activities.LoginActivity;
 
 import java.util.HashMap;
 
@@ -30,7 +30,7 @@ public class UserSessionManager {
 	private static final String IS_USER_LOGIN = "IsUserLoggedIn";
 	
 	// User name (make variable public to access from outside)
-	public static final String KEY_EMAIL = "name";
+	public static final String KEY_USER_ID = "name";
 	
 	// Email address (make variable public to access from outside)
 	public static final String KEY_PASSWORD = "email";
@@ -48,7 +48,7 @@ public class UserSessionManager {
 		editor.putBoolean(IS_USER_LOGIN, true);
 		
 		// Storing name in pref
-		editor.putString(KEY_EMAIL, email);
+		editor.putString(KEY_USER_ID, email);
 		
 		// Storing email in pref
 		editor.putString(KEY_PASSWORD, password);
@@ -94,7 +94,7 @@ public class UserSessionManager {
 		HashMap<String, String> user = new HashMap<String, String>();
 		
 		// user email
-		user.put(KEY_EMAIL, pref.getString(KEY_EMAIL, null));
+		user.put(KEY_USER_ID, pref.getString(KEY_USER_ID, null));
 		
 		// user password
 		user.put(KEY_PASSWORD, pref.getString(KEY_PASSWORD, null));

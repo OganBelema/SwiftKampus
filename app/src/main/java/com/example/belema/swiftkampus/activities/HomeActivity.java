@@ -1,5 +1,6 @@
-package com.example.belema.swiftkampus;
+package com.example.belema.swiftkampus.activities;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.NavigationView;
@@ -16,8 +17,12 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.belema.swiftkampus.Gson.Dashboard;
-import com.example.belema.swiftkampus.SessionManagement.UserSessionManager;
+import com.example.belema.swiftkampus.NetworkConnectivity;
+import com.example.belema.swiftkampus.R;
+import com.example.belema.swiftkampus.ServiceGenerator;
+import com.example.belema.swiftkampus.apiMethods.GetDashboard;
+import com.example.belema.swiftkampus.gson.Dashboard;
+import com.example.belema.swiftkampus.sessionManagement.UserSessionManager;
 import com.squareup.picasso.Picasso;
 
 import java.util.HashMap;
@@ -27,13 +32,15 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class Home extends AppCompatActivity
+public class HomeActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
     // User Session Manager Class
     UserSessionManager session;
     private GetDashboard getDashboard;
     private LinearLayout dashboardView;
     private ProgressBar progressBar;
+
+    private String userId;
 
 
     @Override
@@ -51,15 +58,15 @@ public class Home extends AppCompatActivity
         // get user data from session
         HashMap<String, String> user = session.getUserDetails();
 
-        // get email
-        String email = user.get(UserSessionManager.KEY_EMAIL);
+        // get userId
+        userId = user.get(UserSessionManager.KEY_USER_ID);
 
-        String imageUrl = "https://unibenportal.azurewebsites.net/ConvertImage/RenderImage?StudentId=UNIBEN-203";
+        String imageUrl = "https://unibenportal.azurewebsites.net/ConvertImage/RenderImage?StudentId=" + userId;
 
         NavigationView navigationView = findViewById(R.id.nav_view);
         View headerView = navigationView.getHeaderView(0);
         TextView textView = headerView.findViewById(R.id.drawNav_txt);
-        textView.setText(email);
+        textView.setText(userId);
 
         CircleImageView circleImageView = headerView.findViewById(R.id.imageView);
 
@@ -124,7 +131,7 @@ public class Home extends AppCompatActivity
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
         // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
+        // automatically handle clicks on the HomeActivity/Up button, so long
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
@@ -148,6 +155,11 @@ public class Home extends AppCompatActivity
         // Handle navigation view item clicks here.
         int id = item.getItemId();
 
+        if (id == R.id.nav_course_reg){
+            Intent intent = new Intent(getApplicationContext(), CourseRegistrationActivity.class);
+            startActivity(intent);
+        }
+
        /* if (id == R.id.nav_camera) {
             // Handle the camera action
         } else if (id == R.id.nav_gallery) {
@@ -169,7 +181,7 @@ public class Home extends AppCompatActivity
 
     void loadDashboard(){
         getDashboard = ServiceGenerator.createService(GetDashboard.class);
-        getDashboard.getDashboard("uniben-203").enqueue(new Callback<Dashboard>() {
+        getDashboard.getDashboard(userId).enqueue(new Callback<Dashboard>() {
 
             @Override
             public void onResponse(Call<Dashboard> call, Response<Dashboard> response) {
