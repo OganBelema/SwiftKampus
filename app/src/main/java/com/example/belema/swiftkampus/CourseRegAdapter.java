@@ -38,7 +38,7 @@ public class CourseRegAdapter extends ArrayAdapter<Course>{
 
         Course course = getItem(position);
 
-        courseCodeTextview.setText(String.valueOf(course.getCourseId()));
+        courseCodeTextview.setText(String.valueOf(course.getCredit()));
         courseNameTextView.setText(course.getCourseName());
 
         return convertView;
