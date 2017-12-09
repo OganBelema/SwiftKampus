@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <FrameLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <ProgressBar
+            android:id="@+id/pr_courseReg"
+            android:layout_gravity="center"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content" />
+
+        <LinearLayout
+            android:id="@+id/course_reg_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp"
+            tools:context="com.example.belema.swiftkampus.activities.CourseRegistrationActivity">
+
+            <TextView
+                android:id="@+id/tv_number_of_units"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:textSize="20sp" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:layout_marginRight="5dp">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Courses to be Registered"
+                        android:textSize="22sp" />
+
+                    <TableLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:stretchColumns="1">
+
+                        <TableRow>
+
+                            <TextView
+                                android:gravity="start"
+                                android:maxLines="1"
+                                android:text="Course Unit"
+                                android:textSize="18sp" />
+
+                            <TextView
+                                android:gravity="end"
+                                android:maxLines="1"
+                                android:text="Course Name"
+                                android:textSize="18sp" />
+                        </TableRow>
+                    </TableLayout>
+
+                    <ListView
+                        android:id="@+id/courses_to_register_listView"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginBottom="8dp" />
+                </LinearLayout>
+
+                <LinearLayout
+                    android:layout_width="0dp"
+                    android:layout_weight="1"
+                    android:layout_marginLeft="5dp"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="8dp"
+                        android:text="Registered Courses"
+                        android:textSize="22sp" />
+
+                    <TableLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:stretchColumns="1">
+
+                        <TableRow>
+
+                            <TextView
+                                android:gravity="start"
+                                android:maxLines="1"
+                                android:text="Course Unit"
+                                android:textSize="18sp" />
+
+                            <TextView
+                                android:gravity="end"
+                                android:maxLines="1"
+                                android:text="Course Name"
+                                android:textSize="18sp" />
+                        </TableRow>
+                    </TableLayout>
+
+                    <ListView
+                        android:id="@+id/courses_registered_listView"
+                        android:layout_width="match_parent"
+                        android:layout_height="200dp"
+                        android:layout_marginBottom="8dp" />
+                </LinearLayout>
+            </LinearLayout>
+
+
+
+
+            <Button
+                android:id="@+id/submit_registration_button"
+                style="@style/button_style"
+                android:text="@string/submit_courseReg_button" />
+
+        </LinearLayout>
+    </FrameLayout>
+</ScrollView>

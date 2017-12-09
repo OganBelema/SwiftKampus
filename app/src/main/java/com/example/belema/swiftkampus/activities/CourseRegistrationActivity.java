@@ -1,24 +1,26 @@
 package com.example.belema.swiftkampus.activities;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.Button;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.belema.swiftkampus.CourseRegAdapter;
+import com.example.belema.swiftkampus.MyUtilClass;
 import com.example.belema.swiftkampus.R;
 import com.example.belema.swiftkampus.ServiceGenerator;
-import com.example.belema.swiftkampus.apiMethods.RegisterCourses;
-import com.example.belema.swiftkampus.apiMethods.SubmitRegCourses;
+import com.example.belema.swiftkampus.adapters.CourseRegAdapter;
+import com.example.belema.swiftkampus.apiMethods.ApiMethods;
 import com.example.belema.swiftkampus.gson.Course;
 import com.example.belema.swiftkampus.gson.CourseReg;
 import com.example.belema.swiftkampus.sessionManagement.UserSessionManager;
-
-import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +32,7 @@ import retrofit2.Response;
 
 public class CourseRegistrationActivity extends AppCompatActivity {
 
-    private RegisterCourses registerCourses;
+    private ApiMethods registerCourses;
     private TextView noOfUnitsTextView;
 
     private ListView listView;
@@ -40,7 +42,9 @@ public class CourseRegistrationActivity extends AppCompatActivity {
     private ArrayList<Course> courses;
     private Course regCourse;
     private ArrayList<Course> registeredCourse;
-    int availableCourseUnit;
+    private LinearLayout linearLayout;
+    private ProgressBar progressBar;
+    private int availableCourseUnit;
 
     private Button submitRegButton;
 
@@ -52,6 +56,8 @@ public class CourseRegistrationActivity extends AppCompatActivity {
         noOfUnitsTextView = findViewById(R.id.tv_number_of_units);
         listView = findViewById(R.id.courses_to_register_listView);
         regCourseListView = findViewById(R.id.courses_registered_listView);
+        linearLayout = findViewById(R.id.course_reg_container);
+        progressBar = findViewById(R.id.pr_courseReg);
 
         courses = new ArrayList<>();
         registeredCourse = new ArrayList<>();
@@ -60,9 +66,7 @@ public class CourseRegistrationActivity extends AppCompatActivity {
         listView.setAdapter(adapter);
         regCourseListView.setAdapter(regCourseAdapter);
 
-        UserSessionManager userSessionManager = new UserSessionManager(getApplicationContext());
-
-        HashMap<String, String> user = userSessionManager.getUserDetails();
+        HashMap<String, String> user = UserSessionManager.getUserDetails();
 
         // get userId
         final String userId = user.get(UserSessionManager.KEY_USER_ID);
@@ -72,28 +76,36 @@ public class CourseRegistrationActivity extends AppCompatActivity {
         submitRegButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                progressBar.setVisibility(View.VISIBLE);
                 CourseReg courseReg = new CourseReg();
                 courseReg.setStudentId(userId);
                 courseReg.setCourses(registeredCourse);
                 courseReg.setAvailableCredit(availableCourseUnit);
 
-                SubmitRegCourses submitRegCourses = ServiceGenerator.createService(SubmitRegCourses.class);
-                submitRegCourses.submitCourseReg(courseReg).enqueue(new Callback<ResponseBody>() {
+                ServiceGenerator.INSTANCE.getApiMethods().submitCourseReg(courseReg).enqueue(new Callback<ResponseBody>() {
                     @Override
-                    public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-                        if (response.isSuccessful()){
-                            System.out.println("Submission result: " + response.message());
+                    public void onResponse(@NonNull Call<ResponseBody> call, @Nullable Response<ResponseBody> response) {
+
+                        progressBar.setVisibility(View.GONE);
+                        if (response != null){
+                        if (response.isSuccessful()) {
+                            if (response.message().equals("OK")) {
+                                Toast.makeText(getApplicationContext(), "Registration successful", Toast.LENGTH_LONG)
+                                        .show();
+                            }
+                            finish();
                         }
                     }
+                    }
 
                     @Override
-                    public void onFailure(Call<ResponseBody> call, Throwable t) {
-
+                    public void onFailure(@NonNull Call<ResponseBody> call, @Nullable Throwable t) {
+                        progressBar.setVisibility(View.GONE);
+                        if (t != null)
+                        Toast.makeText(getApplicationContext(),  t.getMessage(), Toast.LENGTH_LONG)
+                                .show();
                     }
                 });
-
-
-                System.err.println(courseReg.getCourses().get(0).getCourseName());
             }
         });
 
@@ -119,11 +131,13 @@ public class CourseRegistrationActivity extends AppCompatActivity {
             }
         });
 
-        registerCourses = ServiceGenerator.createService(RegisterCourses.class);
+        registerCourses = ServiceGenerator.INSTANCE.createService(ApiMethods.class);
         registerCourses.courseRegistration(userId).enqueue(new Callback<CourseReg>() {
             @Override
-            public void onResponse(Call<CourseReg> call, Response<CourseReg> response) {
+            public void onResponse(@NonNull Call<CourseReg> call, @Nullable Response<CourseReg> response) {
+                if (response != null)
                 if (response.isSuccessful()){
+
                     availableCourseUnit = response.body().getAvailableCredit();
                     noOfUnitsTextView.setText(getString(R.string.no_of_courses_to_be_registered, availableCourseUnit));
                     ArrayList<Course> list = response.body().getCourses();
@@ -132,20 +146,16 @@ public class CourseRegistrationActivity extends AppCompatActivity {
                         adapter.add(regCourse);
                         adapter.notifyDataSetChanged();
                     }
+                    progressBar.setVisibility(View.GONE);
+                    linearLayout.setVisibility(View.VISIBLE);
 
 
-                } else {
-                    try {
-                        JSONObject jObjError = new JSONObject(response.errorBody().string());
-                        Toast.makeText(getApplicationContext(), jObjError.getString("message"), Toast.LENGTH_LONG).show();
-                    } catch (Exception e) {
-                        Toast.makeText(getApplicationContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                    }
-                }
+                } else MyUtilClass.INSTANCE.showErrorMessage(CourseRegistrationActivity.this, response);
             }
 
             @Override
-            public void onFailure(Call<CourseReg> call, Throwable t) {
+            public void onFailure(@NonNull Call<CourseReg> call, @Nullable Throwable t) {
+                if (t != null)
                 System.err.println(t.getMessage());
             }
         });

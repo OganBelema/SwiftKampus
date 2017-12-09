@@ -1,42 +1,38 @@
 package com.example.belema.swiftkampus.activities;
 
+import android.Manifest;
 import android.animation.Animator;
 import android.animation.AnimatorListenerAdapter;
 import android.annotation.TargetApi;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.pm.PackageManager;
-import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.design.widget.Snackbar;
+import android.support.annotation.Nullable;
+import android.support.v4.app.ActivityCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.telephony.TelephonyManager;
 import android.text.TextUtils;
-import android.view.MotionEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.example.belema.swiftkampus.NetworkConnectivity;
+import com.example.belema.swiftkampus.MyUtilClass;
 import com.example.belema.swiftkampus.R;
 import com.example.belema.swiftkampus.ServiceGenerator;
 import com.example.belema.swiftkampus.Student;
-import com.example.belema.swiftkampus.apiMethods.RegisterStudent;
-
-import java.io.IOException;
 
 import okhttp3.ResponseBody;
 import retrofit2.Call;
+import retrofit2.Callback;
 import retrofit2.Response;
 
-import static android.Manifest.permission.READ_CONTACTS;
 import static android.Manifest.permission.READ_PHONE_STATE;
 
 /**
@@ -50,7 +46,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
     /**
      * Keep track of the login task to ensure we can cancel it if requested.
      */
-    private UserLoginTask mAuthTask = null;
+    //private UserRegisterTask mAuthTask = null;
 
     // UI references.
     private TextView mEmailView;
@@ -58,12 +54,11 @@ public class StudentRegisterActivity extends AppCompatActivity {
     private EditText mConfirmPasswordView;
     private View mProgressView;
     private View mLoginFormView;
-    private TextView textView;
 
-    String sLastName;
-    String sFirstName;
-    String s_studentId;
-    String sDepartment;
+    private String sLastName;
+    private String sFirstName;
+    private String s_studentId;
+    private String sDepartment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,16 +66,31 @@ public class StudentRegisterActivity extends AppCompatActivity {
         setTitle("Student Register");
         setContentView(R.layout.activity_student_register);
 
-        Bundle bundle = getIntent().getExtras();
-        sLastName = bundle.getString("lastName");
-        sFirstName = bundle.getString("firstName");
-        s_studentId = bundle.getString("userId");
-        sDepartment = bundle.getString("department");
+        // Set up the login form.
+        mEmailView = findViewById(R.id.email);
+        mPasswordView = findViewById(R.id.password);
+        mLoginFormView = findViewById(R.id.login_form);
+        mConfirmPasswordView = findViewById(R.id.confirm_password);
+        mProgressView = findViewById(R.id.login_progress);
 
-        TextView userId = (TextView) findViewById(R.id.userId_txt);
-        TextView fullName = (TextView) findViewById(R.id.fullName_txt);
-        TextView department = (TextView) findViewById(R.id.department_txt);
-        textView = (TextView) findViewById(R.id.notMe);
+        Button mEmailSignInButton = findViewById(R.id.email_sign_in_button);
+        TextView userId = findViewById(R.id.userId_txt);
+        TextView fullName = findViewById(R.id.fullName_txt);
+        TextView department = findViewById(R.id.department_txt);
+        TextView textView = findViewById(R.id.notMe);
+
+        //CHECKPERMISSION
+        getImeiFromDevice();
+
+        Bundle bundle = getIntent().getExtras();
+        if (bundle != null) {
+            sLastName = bundle.getString("lastName");
+            sFirstName = bundle.getString("firstName");
+            s_studentId = bundle.getString("userId");
+            sDepartment = bundle.getString("department");
+        }
+
+
         textView.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -104,55 +114,34 @@ public class StudentRegisterActivity extends AppCompatActivity {
         });
 
         userId.setText("Student ID: " + s_studentId);
-        fullName.setText("Full Name: "+ sLastName + " " + sFirstName);
-        department.setText("Department: " + sDepartment);
-
-        // Set up the login form.
-        mEmailView = (TextView) findViewById(R.id.email);
-
-        mPasswordView = (EditText) findViewById(R.id.password);
+        fullName.setText("Full Name: " + sLastName + " " + sFirstName);
+        department.setText("Department: " + sDepartment + imei);
 
 
-        mConfirmPasswordView = (EditText) findViewById(R.id.confirm_password);
-
-
-        Button mEmailSignInButton = (Button) findViewById(R.id.email_sign_in_button);
         mEmailSignInButton.setOnClickListener(new OnClickListener() {
             @Override
             public void onClick(View view) {
-                populateAutoComplete();
-                if (NetworkConnectivity.checkNetworkConnecttion(getApplicationContext())){
-                    attemptLogin();
-                } else {
-                    Toast.makeText(getApplicationContext(), "You are not connected to the internet",
-                            Toast.LENGTH_LONG).show();
-                }
 
-
-
+                if (MyUtilClass.INSTANCE.checkNetworkConnection(getApplicationContext())) {
+                    attemptRegistration();
+                } else MyUtilClass.INSTANCE.showNoInternetMessage(StudentRegisterActivity.this);
             }
         });
 
-        mLoginFormView = findViewById(R.id.login_form);
-        mLoginFormView.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                InputMethodManager imm = (InputMethodManager) getSystemService(INPUT_METHOD_SERVICE);
-                imm.hideSoftInputFromWindow(getCurrentFocus().getWindowToken(), 0);
-                return true;
-            }
-        });
-        mProgressView = findViewById(R.id.login_progress);
     }
 
 
-    private void populateAutoComplete() {
+    private void getImeiFromDevice() {
         if (!mayRequestPermission()) {
             return;
         }
 
-        TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-        imei = telephonyManager.getDeviceId();
+        try {
+            TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+            imei = telephonyManager.getDeviceId();
+        } catch (SecurityException e) {
+            e.printStackTrace();
+        }
 
     }
 
@@ -163,15 +152,11 @@ public class StudentRegisterActivity extends AppCompatActivity {
         if (checkSelfPermission(READ_PHONE_STATE) == PackageManager.PERMISSION_GRANTED) {
             return true;
         }
-        if (shouldShowRequestPermissionRationale(READ_PHONE_STATE)) {
-            Snackbar.make(mEmailView, R.string.permission_rationale, Snackbar.LENGTH_INDEFINITE)
-                    .setAction(android.R.string.ok, new View.OnClickListener() {
-                        @Override
-                        @TargetApi(Build.VERSION_CODES.M)
-                        public void onClick(View v) {
-                            requestPermissions(new String[]{READ_CONTACTS}, REQUEST_READ_IMEI);
-                        }
-                    });
+        if (ActivityCompat.shouldShowRequestPermissionRationale(this, READ_PHONE_STATE)) {
+            ActivityCompat.requestPermissions(this,
+                    new String[]{Manifest.permission.READ_PHONE_STATE},
+                    REQUEST_READ_IMEI);
+
         } else {
             requestPermissions(new String[]{READ_PHONE_STATE}, REQUEST_READ_IMEI);
         }
@@ -185,10 +170,14 @@ public class StudentRegisterActivity extends AppCompatActivity {
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions,
                                            @NonNull int[] grantResults) {
         if (requestCode == REQUEST_READ_IMEI) {
-            if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                TelephonyManager telephonyManager = (TelephonyManager)getSystemService(Context.TELEPHONY_SERVICE);
-                imei = telephonyManager.getDeviceId();
-                System.out.println(imei);
+            try {
+                if (grantResults.length == 1 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                    TelephonyManager telephonyManager = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
+                    imei = telephonyManager.getDeviceId();
+                    System.out.println(imei);
+                }
+            } catch (SecurityException e) {
+                e.printStackTrace();
             }
         }
     }
@@ -198,10 +187,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
      * If there are form errors (invalid email, missing fields, etc.), the
      * errors are presented and no actual login attempt is made.
      */
-    private void attemptLogin() {
-        if (mAuthTask != null) {
-            return;
-        }
+    private void attemptRegistration() {
 
         // Reset errors.
         mEmailView.setError(null);
@@ -249,8 +235,10 @@ public class StudentRegisterActivity extends AppCompatActivity {
             // Show a progress spinner, and kick off a background task to
             // perform the user login attempt.
             showProgress(true);
-            mAuthTask = new UserLoginTask(email, password, confirmPassword, sLastName, sFirstName, imei, sDepartment, s_studentId);
-            mAuthTask.execute((Void) null);
+            registerStudent(new Student(sFirstName, sLastName, sDepartment, imei,
+                    s_studentId, email, password, confirmPassword));
+            /*mAuthTask = new UserRegisterTask(email, password, confirmPassword, sLastName, sFirstName, imei, sDepartment, s_studentId);
+            mAuthTask.execute((Void) null);*/
         }
     }
 
@@ -273,32 +261,66 @@ public class StudentRegisterActivity extends AppCompatActivity {
         // On Honeycomb MR2 we have the ViewPropertyAnimator APIs, which allow
         // for very easy animations. If available, use these APIs to fade-in
         // the progress spinner.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB_MR2) {
-            int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
+        int shortAnimTime = getResources().getInteger(android.R.integer.config_shortAnimTime);
 
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-            mLoginFormView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-                }
-            });
+        mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+        mLoginFormView.animate().setDuration(shortAnimTime).alpha(
+                show ? 0 : 1).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
+            }
+        });
 
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mProgressView.animate().setDuration(shortAnimTime).alpha(
-                    show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
-                @Override
-                public void onAnimationEnd(Animator animation) {
-                    mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+        mProgressView.animate().setDuration(shortAnimTime).alpha(
+                show ? 1 : 0).setListener(new AnimatorListenerAdapter() {
+            @Override
+            public void onAnimationEnd(Animator animation) {
+                mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
+            }
+        });
+
+    }
+
+    private void registerStudent(Student student){
+        ServiceGenerator.INSTANCE.getApiMethods().registerStudent(student).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @Nullable Response<ResponseBody> response) {
+                showProgress(false);
+                if (response != null){
+                    if (response.isSuccessful()){
+                        AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(StudentRegisterActivity.this);
+                        alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+                                finish();
+                            }
+                        });
+                        alertDialogBuilder.setMessage("Account successfully registered. Please check your mail for the" +
+                                " confirmation link");
+                        AlertDialog alertDialog = alertDialogBuilder.create();
+                        alertDialog.show();
+                        alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                            @Override
+                            public void onCancel(DialogInterface dialogInterface) {
+                                finish();
+                            }
+                        });
+                    } else MyUtilClass.INSTANCE.showErrorMessage(StudentRegisterActivity.this, response);
                 }
-            });
-        } else {
-            // The ViewPropertyAnimator APIs are not available, so simply show
-            // and hide the relevant UI components.
-            mProgressView.setVisibility(show ? View.VISIBLE : View.GONE);
-            mLoginFormView.setVisibility(show ? View.GONE : View.VISIBLE);
-        }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @Nullable Throwable t) {
+                showProgress(false);
+                if (t != null){
+                    Toast.makeText(getApplicationContext(), t.getMessage(), Toast.LENGTH_LONG)
+                            .show();
+                }
+            }
+        });
+
     }
 
 
@@ -306,7 +328,7 @@ public class StudentRegisterActivity extends AppCompatActivity {
      * Represents an asynchronous login/registration task used to authenticate
      * the user.
      */
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    /*public class UserRegisterTask extends AsyncTask<Void, Void, Boolean> {
 
         private final String mEmail;
         private final String mPassword;
@@ -317,8 +339,8 @@ public class StudentRegisterActivity extends AppCompatActivity {
         private final String mDepartment;
         private final String mStudentId;
 
-        UserLoginTask(String email, String password, String confirmPasword, String lastName, String firstname,
-                      String imei, String department, String studentId) {
+        UserRegisterTask(String email, String password, String confirmPasword, String lastName, String firstname,
+                         String imei, String department, String studentId) {
             mEmail = email;
             mPassword = password;
             mConfirmPasword = confirmPasword;
@@ -332,42 +354,24 @@ public class StudentRegisterActivity extends AppCompatActivity {
         @Override
         protected Boolean doInBackground(Void... params) {
 
-            RegisterStudent registerStudent = ServiceGenerator.createService(RegisterStudent.class);
-            Call<ResponseBody> call = registerStudent.registerStudent(new Student(mFirstName,mLastName,mDepartment, mImei, mStudentId, mEmail, mPassword, mConfirmPasword));
+            ApiMethods registerStudent = ServiceGenerator.INSTANCE.createService(ApiMethods.class);
+            Call<ResponseBody> call = registerStudent.registerStudent(new Student(mFirstName, mLastName, mDepartment, mImei, mStudentId, mEmail, mPassword, mConfirmPasword));
 
             try {
-                Response<ResponseBody> response = call.execute();
+                response = call.execute();
                 System.out.println(response.code());
                 System.out.println(response.errorBody());
                 System.out.println(response.message());
-                if (response.isSuccessful()){
-                    AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(StudentRegisterActivity.this);
-                    alertDialogBuilder.setMessage("Account successfully registered. Please check your mail for the" +
-                            " confirmation link");
-                    alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                        @Override
-                        public void onClick(DialogInterface dialogInterface, int i) {
-                            finish();
-                        }
-                    });
-                    AlertDialog alertDialog = alertDialogBuilder.create();
-                    alertDialog.show();
-                    alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
-                        @Override
-                        public void onCancel(DialogInterface dialogInterface) {
-                            finish();
-                        }
-                    });
+                if (response.isSuccessful()) {
                     System.out.println(response.message());
                     System.out.println(response.code());
                     return true;
                 }
+                return false;
             } catch (IOException e) {
                 e.printStackTrace();
-
+                return false;
             }
-
-            return false;
         }
 
         @Override
@@ -375,11 +379,42 @@ public class StudentRegisterActivity extends AppCompatActivity {
             mAuthTask = null;
             showProgress(false);
 
+            AlertDialog.Builder alertDialogBuilder = new AlertDialog.Builder(StudentRegisterActivity.this);
+            alertDialogBuilder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialogInterface, int i) {
+                    finish();
+                }
+            });
+
             if (success) {
-                finish();
+                alertDialogBuilder.setMessage("Account successfully registered. Please check your mail for the" +
+                        " confirmation link");
+                AlertDialog alertDialog = alertDialogBuilder.create();
+                alertDialog.show();
+                alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                    @Override
+                    public void onCancel(DialogInterface dialogInterface) {
+                        finish();
+                    }
+                });
+
             } else {
-                Toast.makeText(getApplicationContext(), "Error registering. Please try again.",
-                        Toast.LENGTH_LONG).show();
+                try {
+                    JSONObject jObjError = new JSONObject(response.errorBody().string());
+
+                    alertDialogBuilder.setMessage(jObjError.getString("message"));
+                    final AlertDialog alertDialog = alertDialogBuilder.create();
+                    alertDialog.show();
+                    alertDialog.setOnCancelListener(new DialogInterface.OnCancelListener() {
+                        @Override
+                        public void onCancel(DialogInterface dialogInterface) {
+                            alertDialog.dismiss();
+                        }
+                    });
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
         }
 
@@ -388,6 +423,6 @@ public class StudentRegisterActivity extends AppCompatActivity {
             mAuthTask = null;
             showProgress(false);
         }
-    }
+    }*/
 }
 

@@ -14,15 +14,15 @@
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity
-            android:name=".activities.MainActivity"
+            android:name=".activities.CheckIdActivity"
             android:label="Confirm ID"
             android:parentActivityName=".activities.LoginActivity" />
         <activity
             android:name=".activities.StudentRegisterActivity"
-            android:parentActivityName=".activities.MainActivity" />
+            android:parentActivityName=".activities.CheckIdActivity" />
         <activity
             android:name=".activities.LoginActivity"
-            android:theme="@style/LoginTheme"/>
+            android:theme="@style/LoginTheme" />
         <activity
             android:name=".activities.HomeActivity"
             android:theme="@style/SplashTheme">
@@ -32,10 +32,26 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".activities.CourseRegistrationActivity"
+        <activity
+            android:name=".activities.CourseRegistrationActivity"
             android:label="Course Registration"
-            android:parentActivityName=".activities.HomeActivity"/>
-
+            android:parentActivityName=".activities.HomeActivity" />
+        <activity
+            android:name=".activities.ResultActivity"
+            android:label="@string/student_result"
+            android:parentActivityName=".activities.HomeActivity" />
+        <activity
+            android:name=".activities.ELearning"
+            android:label="@string/lms"
+            android:parentActivityName=".activities.HomeActivity" />
+        <activity
+            android:name=".activities.ModuleActivity"
+            android:parentActivityName=".activities.ELearning" />
+        <activity
+            android:name=".activities.TopicActivity"
+            android:parentActivityName=".activities.ModuleActivity" />
+        <activity android:name=".activities.TopicContentActivity"
+            android:parentActivityName=".activities.TopicActivity"/>
     </application>
 
 </manifest>

@@ -12,16 +12,16 @@ import java.util.HashMap;
 public class UserSessionManager {
 	
 	// Shared Preferences reference
-	SharedPreferences pref;
+	private static SharedPreferences pref;
 	
 	// Editor reference for Shared preferences
-	Editor editor;
+	private Editor editor;
 	
 	// Context
-	Context _context;
+	private Context _context;
 	
 	// Shared pref mode
-	int PRIVATE_MODE = 0;
+	private int PRIVATE_MODE = 0;
 	
 	// Sharedpref file name
 	private static final String PREFER_NAME = "AndroidExamplePref";
@@ -88,7 +88,7 @@ public class UserSessionManager {
 	/**
 	 * Get stored session data
 	 * */
-	public HashMap<String, String> getUserDetails(){
+	public static HashMap<String, String> getUserDetails(){
 		
 		//Use hashmap to store user credentials
 		HashMap<String, String> user = new HashMap<String, String>();
